@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>STIGMA Passage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono&family=Courier+Prime&display=swap">
+<style>[hidden]{display:none!important} body{margin:0}</style>
+</head><body>
+<style>
+/* Layout: one white sheet per room, set in a single monospace like a typed concrete poem.
+   Stitches are the real characters U and ∩. Colour comes only from the chosen palette. */
+:root {
+  --paper: #ffffff;
+  --ink: #111111;
+  --acc1: #111111;     /* accent 1 (palette) */
+  --acc2: #111111;     /* accent 2 (palette) */
+  --mono: "Fira Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+  /* the stitch letters: U from Courier Prime, ∩ falls back to the system's mono/symbol font */
+  --stitch: "STIGMA Stitch", "Courier Prime", "DejaVu Sans Mono", Menlo, monospace;
+  color-scheme: light;
+}
+/* STIGMA Stitch: one serif U and the same U turned upside down for ∩, so both stitches always match.
+   It only covers those two characters; every other letter comes from the fonts after it. */
+@font-face { font-family: "STIGMA Stitch"; src: url(data:font/ttf;base64,AAEAAAAKAIAAAwAgT1MvMkeiaH8AAAEoAAAAYGNtYXAAaSKzAAABlAAAAERnbHlmJmAbzgAAAeQAAAFWaGVhZC92ywoAAACsAAAANmhoZWEFCgICAAAA5AAAACRobXR4AlgAAAAAAYgAAAAKbG9jYQCrAFUAAAHYAAAACm1heHAACgBEAAABCAAAACBuYW1lqPb+qgAAAzwAAABycG9zdExUQ4cAAAOwAAAANwABAAAAAQAAbw8qyl8PPPUAAQPoAAAAAOcFQ+QAAAAA5wVD5AA4AAACIAJiAAAAAwACAAAAAAAAAAEAAAMg/zgAAAJYAAAAcAHoAAEAAAAAAAAAAAAAAAAAAAABAAEAAAAEAEIABQAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAwJYAZAABQAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAQAAAAAAAAAAAPz8/PwAAACAiKQMg/zgAAAMgAMgAAAAAAAAAAAJiAmIAAAAgAAACWAAAAAAAAAAAAAAAAAACAAAAAwAAABQAAwABAAAAFAAEADAAAAAIAAgAAgAAACAAVSIp//8AAAAgAFUiKf///+H/rd3aAAEAAAAAAAAAAAAAAAAAAABVAKsAAAAFADgAAAIgAmIAAwAHADkAPQBBAAA3ETMRMxEzESEfCz8LMw8LLwsDNTMVMzUzFXZK2Er+3gEDBAYICgoMDQ0ODg4ODQ0MCgoIBgQDAUoCBAgKDg8SFBUXFxgYFxcVFBIPDgoIBAI+xlzGtgGs/lQBrP5UDg4NDQwKCggGBAMBAQMEBggKCgwNDQ4OGBcXFRQSDw4KCAQCAgQICg4PEhQVFxcYAXg0NDQ0AAUAOAAAAiACYgADAAcAOQA9AEEAAAERIxEjESMRIS8LDwsjPwsfCxMVIzUjFSM1AeJK2EoBIgEDBAYICgoMDQ0ODg4ODQ0MCgoIBgQDAUoCBAgKDg8SFBUXFxgYFxcVFBIPDgoIBAI+xlzGAaz+VAGs/lQBrA4ODQ0MCgoIBgQDAQEDBAYICgoMDQ0ODhgXFxUUEg8OCggEAgIECAoODxIUFRcXGP6INDQ0NAAAAAAABAA2AAEAAAAAAAEADQAAAAEAAAAAAAIABwANAAMAAQQJAAEAGgAUAAMAAQQJAAIADgAuU1RJR01BIFN0aXRjaFJlZ3VsYXIAUwBUAEkARwBNAEEAIABTAHQAaQB0AGMAaABSAGUAZwB1AGwAYQByAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAwA4AQIMaW50ZXJzZWN0aW9uAA==) format("truetype"); unicode-range: U+0055, U+2229; font-display: block; }
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--mono); overflow: hidden; transition: background-color .9s, color .9s; }
+button { font: inherit; color: inherit; }
+canvas.full { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.page { position: fixed; inset: 0; z-index: 2; overflow: hidden; background: var(--paper); transition: background-color .9s; }
+.soft { color: color-mix(in srgb, var(--ink) 45%, var(--paper)); }
+
+/* ---- chrome: small typed labels at the edges ---- */
+.chrome { position: fixed; z-index: 20; inset: 0 0 auto 0; pointer-events: none; display: flex; justify-content: space-between;
+  padding-top: calc(22px + env(safe-area-inset-top, 0px)); padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+  font-size: 13px; transition: opacity .8s; }
+.hint { position: fixed; z-index: 20; pointer-events: none; right: max(24px, env(safe-area-inset-right, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); font-size: 12px; transition: opacity .8s; }
+body.bare .chrome, body.bare .hint { opacity: 0; }
+.back { all: unset; position: fixed; z-index: 21; cursor: pointer; font-size: 13px;
+  left: max(24px, env(safe-area-inset-left, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transition: letter-spacing .8s; }
+.back:hover { letter-spacing: .12em; }
+.back[hidden] { display: none; }
+.palbtn { all: unset; position: fixed; z-index: 21; cursor: pointer; font-size: 13px; left: 50%; transform: translateX(-50%);
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px)); background: var(--paper); padding: 2px 8px; transition: letter-spacing .8s, background-color .9s; }
+.palbtn:hover { letter-spacing: .1em; }
+.palbtn:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 4px; }
+.palbtn[hidden] { display: none; }
+.home { position: fixed; z-index: 22; margin: 0; top: calc(20px + env(safe-area-inset-top, 0px)); right: max(24px, env(safe-area-inset-right, 0px));
+  font-size: 13px; background: var(--paper); padding: 2px 6px; transition: background-color .9s; }
+.home button { all: unset; cursor: pointer; transition: letter-spacing .8s; }
+.home button:hover { letter-spacing: .1em; }
+.home button:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 4px; }
+.home[hidden] { display: none; }
+#where { visibility: hidden; }   /* the top-right corner belongs to (hh)home now */
+.back:focus-visible, .go:focus-visible, .pass:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 6px; }
+
+/* ================= sheets: the poem and the you/world clouds =================
+   A fixed 2000 × 1330 sheet (the size of the layout files), scaled to fit, so every word keeps its place. */
+.sheet { position: absolute; left: 0; top: 0; width: 2000px; height: 1330px; transform-origin: 0 0; font-size: 25.5px; line-height: 1; }
+.sheet .ln { position: absolute; white-space: pre; }
+.sheet .go { all: unset; position: absolute; white-space: pre; cursor: pointer; }
+.knot5, .noise span, .door { transition: color .9s, letter-spacing 1.2s cubic-bezier(.65, 0, .25, 1); }
+.sheet .door:hover, .sheet .knitlink:hover { letter-spacing: .04em; }
+.sheet .knitlink { transition: letter-spacing 1.2s cubic-bezier(.65, 0, .25, 1); }
+/* once a palette is chosen, the buttons and the noise pick up its accents */
+:root[data-pal] .knot5, :root[data-pal] .door { color: var(--acc1); }
+:root[data-pal] .noise span:nth-child(odd) { color: var(--acc1); }
+:root[data-pal] .noise span:nth-child(3n) { color: var(--acc2); }
+
+/* I · welcome */
+.poem-body { position: absolute; inset: 0; transition: transform 1.5s cubic-bezier(.65, 0, .25, 1); }
+.sheet.open .poem-body { transform: translateY(-71px); }
+.sheet .iam { left: 1401px; top: 1120px; width: 160px; height: 30px; transition: transform 1.5s cubic-bezier(.65, 0, .25, 1); }
+.iam span { position: absolute; top: 0; }
+.sheet.open .iam { transform: translate(-157px, -71px); }
+.noise span { position: absolute; will-change: transform; }
+.bio .ln { left: 1437px; width: 505px; display: flex; justify-content: space-between; clip-path: inset(0 100% 0 0); transition: clip-path .5s cubic-bezier(.4, 0, .2, 1); }
+.bio .ln.on3 { display: grid; grid-template-columns: 276px 1fr auto; }
+.sheet.open .bio .ln { clip-path: inset(0 0 0 0); transition: clip-path 1.1s cubic-bezier(.4, 0, .2, 1) calc(1s + var(--d) * 180ms); }
+.bio a { color: inherit; text-decoration: none; }
+.bio a:hover { text-decoration: underline; text-underline-offset: 5px; }
+
+/* ================= II · curtain ================= */
+.page[data-page="curtain"] { touch-action: none; cursor: none; }
+#curtain { z-index: 3; pointer-events: none; }
+.mode { all: unset; position: absolute; z-index: 4; right: max(24px, env(safe-area-inset-right, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); cursor: none; white-space: pre; font-size: clamp(14px, 1.3vw, 18px); transition: letter-spacing 1s; }
+.mode:hover { letter-spacing: .1em; }
+.mode:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 6px; }
+.pass { all: unset; position: absolute; z-index: 2; right: max(24px, env(safe-area-inset-right, 0px)); bottom: calc(52px + env(safe-area-inset-bottom, 0px)); cursor: none; white-space: pre; font-size: clamp(14px, 1.3vw, 18px); opacity: 0; pointer-events: none; transition: opacity 2.6s, letter-spacing 1s; }
+.pass.shown { opacity: 1; pointer-events: auto; }
+.pass:hover { letter-spacing: .1em; }
+
+/* ================= the cipher layer (curtain onward) =================
+   Every word after the poem page is shown in STIGMA code; hovering a word types its letters in.
+   Code and letters sit on top of each other, so nothing shifts when a word changes. */
+.cw { display: inline-grid; vertical-align: middle; }
+.cw > span { grid-area: 1 / 1; justify-self: center; align-self: center; white-space: nowrap; transition: clip-path .7s cubic-bezier(.4, 0, .2, 1); }
+.cw .c { font-family: var(--stitch); font-size: .6em; clip-path: inset(0 0 0 0); }
+.cw .c i { font-style: normal; margin: 0 .22em; }
+.cw .c b { font-weight: 400; font-family: var(--mono); font-size: 1.67em; }
+.cw .p { clip-path: inset(0 100% 0 0); }
+.cw.on .c { clip-path: inset(0 0 0 100%); }
+.cw.on .p { clip-path: inset(0 0 0 0); }
+.sheet .ln .mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap; }
+
+/* ================= III.a / III.b ================= */
+#poster { z-index: 2; }
+/* knitters' colours in "together" (palette slots) */
+.o0 { color: var(--ink); } .o1 { color: var(--acc1); } .o2 { color: var(--acc2); }
+.together-only { display: none; }
+[data-page="together"] .together-only { display: block; min-height: 1.4em; margin: -12px 0 10px; }
+.page[data-page="together"], .page[data-page="map"] { overflow-y: auto; }
+/* world: two doors over the stitch poster */
+.doors { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; gap: 26px; pointer-events: none; font-size: clamp(16px, 1.6vw, 22px); }
+.doors p { margin: 0; background: var(--paper); padding: 8px 16px; pointer-events: auto; text-align: center; }
+.doors .opt { all: unset; cursor: pointer; transition: letter-spacing .8s; }
+.doors .opt:hover { letter-spacing: .08em; }
+.doors .opt:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 4px; }
+/* map */
+.page[data-page="map"] { overflow: hidden; }
+#mapCv { cursor: crosshair; }
+.voices { position: absolute; z-index: 6; top: calc(62px + env(safe-area-inset-top, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px)); width: min(440px, calc(100% - 40px)); overflow-y: auto; background: var(--paper);
+  border-left: 1px solid var(--ink); padding: 18px 22px 22px; font-size: 14px; display: grid; align-content: start; gap: 14px; }
+.voices .opt { all: unset; cursor: pointer; transition: letter-spacing .8s; }
+.voices .opt:hover { letter-spacing: .08em; }
+.voices .opt:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 4px; }
+.vhead { display: flex; justify-content: space-between; gap: 12px; font-size: 17px; }
+.vlab { margin: 0; font-size: 12px; }
+.vlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.vlist li { display: grid; gap: 6px; line-height: 1.7; }
+.vlist li.empty { display: block; }
+.vlist .who { font-size: 11px; color: color-mix(in srgb, var(--ink) 55%, var(--paper)); }
+.vlist .mine .who { color: var(--acc2); }
+.vlist .example { opacity: .72; }
+.vwrite { display: grid; gap: 8px; border-top: 1px solid var(--ink); padding-top: 14px; }
+.vwrite label { font-size: 12px; }
+.vwrite textarea { width: 100%; border: 0; border-bottom: 1px solid var(--ink); background: transparent; color: var(--ink); font-family: var(--mono); font-size: 15px; resize: vertical; padding: 6px 0; outline: none; border-radius: 0; }
+.vprev { min-height: 1.5em; line-height: 1.8; color: var(--acc1); }
+:root:not([data-pal]) .vprev { color: var(--ink); }
+.voices .acts { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.mapmsg { position: absolute; left: 0; right: 0; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 14px; margin: 0; z-index: 3; }
+
+/* III.a · you: the encoder and the knitting chart */
+.page[data-page="you"] { overflow-y: auto; }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 40px 72px; max-width: 1280px; margin: 0 auto;
+  padding-block: calc(64px + env(safe-area-inset-top, 0px)) calc(90px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); font-size: 14px; }
+.tool .col { min-width: 0; }
+.tool h2 { font-weight: 400; font-size: 17px; margin: 0 0 26px; }
+.tool label { display: block; font-size: 12px; margin: 22px 0 8px; }
+.tool textarea { width: 100%; border: 0; border-bottom: 1px solid var(--ink); background: transparent; color: var(--ink); font-family: var(--mono); font-size: 16px; line-height: 1.5; resize: vertical; padding: 6px 0; outline: none; border-radius: 0; }
+.tool textarea:focus-visible { border-bottom-width: 2px; }
+textarea[id$="Code"] { font-family: var(--stitch); letter-spacing: .04em; }
+.tool .small { font-size: 12px; margin: 12px 0 0; }
+.tool .acts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 18px; }
+.tool .opt { all: unset; cursor: pointer; transition: letter-spacing .8s, color .6s; }
+.tool .opt:hover { letter-spacing: .08em; }
+.tool .opt:focus-visible { outline: 1.5px dashed var(--ink); outline-offset: 4px; }
+.tool .opt.on { color: var(--acc1); text-decoration: underline; text-underline-offset: 6px; }
+.tool .ctrl { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 14px; }
+.tool .ctrl .lab { min-width: 92px; }
+.modes { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+[id$="WVal"], [id$="EVal"] { font-variant-numeric: tabular-nums; }
+.chartwrap { overflow-x: auto; margin: 22px 0 6px; padding-bottom: 6px; }
+.chart { margin: 0; font-family: var(--stitch); font-size: 15px; line-height: 1.12; }
+.chart .n { color: var(--acc1); }
+.chart .pad { color: color-mix(in srgb, var(--ink) 25%, var(--paper)); }
+.getg { margin: 22px 0 4px; font-size: 15px; }
+.rows { list-style: none; padding: 0; margin: 18px 0 0; max-height: 280px; overflow: auto; font-size: 12.5px; line-height: 1.7; }
+.tool .wide { grid-column: 1 / -1; padding-top: 30px; }
+.emb { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px 56px; align-items: start; }
+.echart { margin: 0; font-family: var(--stitch); font-size: 12px; line-height: 1.05; }
+.echart .t1, .rows .t1 { color: var(--ink); }
+.echart .t2, .rows .t2 { color: var(--acc1); }
+.echart .dot { color: color-mix(in srgb, var(--ink) 22%, var(--paper)); }
+:root:not([data-pal]) .echart .t2, :root:not([data-pal]) .rows .t2 { color: color-mix(in srgb, var(--ink) 55%, var(--paper)); }
+.plate { margin: 0 0 26px; }
+.plate canvas { display: block; width: 100%; height: 380px; }
+.plate figcaption { font-size: 12px; text-align: center; margin-top: 6px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+label.opt { display: inline; margin: 0; font-size: inherit; }
+#eFile:focus-visible + .small, label.opt:focus-within { outline: 1.5px dashed var(--ink); }
+@media (max-width: 900px) { .tool, .emb { grid-template-columns: 1fr; } }
+.note { position: absolute; z-index: 3; right: max(8%, 24px); bottom: calc(78px + env(safe-area-inset-bottom, 0px)); width: min(860px, calc(100% - 48px));
+  display: grid; gap: 9px; font-size: clamp(14px, 1.25vw, 17px); background: var(--paper); padding: 12px 0 6px 14px; transition: background-color .9s; }
+.note .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 22px; }
+.note .gap { height: 14px; }
+</style>
+
+<header class="chrome">
+  <span id="mark">stigma</span>
+  <span id="where"></span>
+</header>
+<div class="hint soft" id="hint"></div>
+<button type="button" class="back" id="back">(back)</button>
+<!-- palette switch on every page after the poem (the poem has its own "(ttttt)" inside the text) -->
+<button type="button" class="palbtn" id="palBtn" aria-label="Change colours" hidden>(ttttt)</button>
+<!-- back to the poem from every page: only "(hh)" is the button -->
+<p class="home" id="home" hidden><button type="button" id="homeBtn" aria-label="Home">(hh)</button><span id="homeWord">home</span></p>
+
+<!-- I · WELCOME: the knitting poem. Lines are placed by script (section 4). -->
+<section class="page" data-page="welcome" hidden>
+  <div class="sheet" id="sheet">
+    <div class="poem-body" id="poemBody">
+      <!-- way in: the curtain -->
+      <button type="button" class="go ln knitlink" id="knitlink" style="left:325px;top:502px">i knit therefore i am    i knit therefore</button>
+      <!-- palette: each press recolours the whole site -->
+      <button type="button" class="go ln knot5" id="knot5" aria-label="Change colours" style="left:975px;top:424.6px">(ttttt)</button>
+      <div class="noise" id="noise" aria-hidden="true"></div>
+    </div>
+    <!-- who I am -->
+    <button type="button" class="go iam" id="iam" aria-expanded="false" aria-controls="bio"><span style="left:0">i.</span><span style="left:126px">am.</span></button>
+    <div class="bio" id="bio">
+      <div class="ln" style="top:1050px;--d:0"><span>chernenko</span><span>yasmina</span><span>oleksandrivna</span></div>
+      <div class="ln" style="top:1122px;--d:1"><span>motion and graphic</span><span>designer</span></div>
+      <div class="ln" style="top:1156px;--d:2"><span>based in</span><span>barcelona</span></div>
+      <div class="ln on3" style="top:1225px;--d:3"><a href="https://www.instagram.com/yasm.cher/" target="_blank" rel="noopener">@yasm.cher</a><span>on</span><span>inst</span></div>
+      <div class="ln on3" style="top:1259px;--d:4"><a href="https://www.pinterest.com/yas_cher/" target="_blank" rel="noopener">@yas_cher</a><span>on</span><span>pinterest</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- II · CURTAIN -->
+<section class="page" data-page="curtain" hidden>
+  <!-- switches the room between the hanging threads and the snow globe -->
+  <button type="button" class="mode" id="mode">(snow)</button>
+  <button type="button" class="pass" id="pass">(go through)</button>
+  <canvas class="full" id="curtain"></canvas>
+</section>
+
+<!-- III · YOU / WORLD: "(uuuu)" opens you, "(ooooo)" opens world. Words placed by script (section 6). -->
+<section class="page" data-page="split" hidden>
+  <div class="sheet" id="splitSheet">
+    <button type="button" class="go ln door" data-go="you" aria-label="Open you" style="left:351px;top:515px">(uuuu)</button>
+    <button type="button" class="go ln door" data-go="world" aria-label="Open world" style="left:1203px;top:515px">(ooooo)</button>
+  </div>
+</section>
+
+<!-- III.a · YOU: the knitting tool (filled in by script, section 7). Labels are in code (hover to read). -->
+<section class="page" data-page="you" hidden>
+  <div class="tool" data-tool="y"></div>
+</section>
+
+<!-- III.b · WORLD: choose to knit together, or the map -->
+<section class="page" data-page="world" hidden>
+  <canvas class="full" id="poster"></canvas>
+  <div class="doors">
+    <p><span class="enc">knit</span> <button type="button" class="opt enc wdoor" data-go="together">(together)</button></p>
+    <p><span class="enc">the world as a</span> <button type="button" class="opt enc wdoor" data-go="map">(map)</button></p>
+  </div>
+</section>
+
+<!-- III.b.1 · KNIT TOGETHER: the same tool, shared live with everyone on this page -->
+<section class="page" data-page="together" hidden>
+  <div class="tool" data-tool="t"></div>
+</section>
+
+<!-- III.b.2 · MAP: the world drawn with needles (I). Hover a country to see its name in stitches. -->
+<section class="page" data-page="map" hidden>
+  <canvas class="full" id="mapCv"></canvas>
+  <p class="mapmsg" id="mapMsg" aria-live="polite"></p>
+  <!-- voices: click a country to read what anónimos wrote there, and add your own -->
+  <aside class="voices" id="voices" hidden aria-label="Voices from this country">
+    <div class="vhead"><span id="vCountry"></span><button type="button" class="opt" id="vClose" aria-label="Close">(close)</button></div>
+    <p class="vlab" id="vLab"></p>
+    <ol class="vlist" id="vList"></ol>
+    <div class="vwrite">
+      <label class="enc" for="vText">your statement</label>
+      <textarea id="vText" rows="3" maxlength="280" spellcheck="false" autocomplete="off"></textarea>
+      <div class="vprev" id="vPrev" aria-live="polite"></div>
+      <div class="acts"><button type="button" class="opt enc" id="vPub">(publish)</button><span class="small" id="vMsg" aria-live="polite"></span></div>
+    </div>
+  </aside>
+</section>
+
+<canvas id="rain" style="position:fixed;inset:0;width:100%;height:100%;z-index:50;pointer-events:none;display:block"></canvas>
+
+<script>
+/* =====================================================================
+   1. THE U / ∩ SYSTEM   (0 = U double crochet, 1 = ∩ chain, -1 = gap between letters)
+   ===================================================================== */
+const TABLE = {
+  A:"UUUUU",B:"UUUU∩",C:"UUU∩U",D:"UUU∩∩",E:"UU∩UU",F:"UU∩U∩",G:"UU∩∩U",H:"UU∩∩∩",
+  I:"U∩UUU",J:"U∩UU∩",K:"U∩U∩U",L:"U∩U∩∩",M:"U∩∩UU",N:"U∩∩U∩",O:"U∩∩∩U",P:"U∩∩∩∩",
+  Q:"∩UUUU",R:"∩UUU∩",S:"∩UU∩U",T:"∩UU∩∩",U:"∩U∩UU",V:"∩U∩U∩",W:"∩U∩∩U",X:"∩U∩∩∩",
+  Y:"∩∩UUU",Z:"∩∩UU∩"
+};
+function codeOf(text) {
+  const out = [];
+  for (const ch of text.toUpperCase()) {
+    const c = TABLE[ch];
+    if (out.length && out[out.length - 1] !== -1) out.push(-1);
+    if (c) for (const s of c) out.push(s === "U" ? 0 : 1);
+  }
+  while (out[out.length - 1] === -1) out.pop();
+  return out;
+}
+
+const $ = id => document.getElementById(id);
+
+/* ---- the cipher layer ----
+   encHTML("you are") → each word becomes its stitch code (letters → U/∩, brackets and dots kept),
+   with the plain word hidden underneath. Hover a word and the letters type in over the code;
+   they stay for a moment after the pointer leaves, then fold back into code. */
+const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function wordHTML(w) {
+  const code = [...w].map(ch => { const c = TABLE[ch.normalize("NFD")[0].toUpperCase()]; return c ? `<i>${c}</i>` : `<b>${esc(ch)}</b>`; }).join("");   // accented letters use their plain letter's code
+  return `<span class="cw"><span class="c" aria-hidden="true">${code}</span><span class="p">${esc(w)}</span></span>`;
+}
+const encHTML = text => text.split(/(\s+)/).map(part => !part || /^\s+$/.test(part) ? part : wordHTML(part)).join("");
+function encodeTree(root) {                      // replace every text node under root with its coded version
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) if (walker.currentNode.nodeValue.trim()) nodes.push(walker.currentNode);
+  for (const n of nodes) { const tmp = document.createElement("span"); tmp.innerHTML = encHTML(n.nodeValue); n.replaceWith(...tmp.childNodes); }
+}
+const setEnc = (el, text) => { el.innerHTML = encHTML(text); };
+const LINGER = 1600;                              // ms a word stays readable after the pointer leaves
+document.addEventListener("pointerover", e => {
+  const w = e.target.closest && e.target.closest(".cw"); if (!w) return;
+  clearTimeout(w._t); w.classList.add("on");
+});
+document.addEventListener("pointerout", e => {
+  const w = e.target.closest && e.target.closest(".cw"); if (!w || w.contains(e.relatedTarget)) return;
+  clearTimeout(w._t); w._t = setTimeout(() => w.classList.remove("on"), LINGER);
+});
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rand = (a, b) => a + Math.random() * (b - a);
+const STITCH_FONT = '"STIGMA Stitch", "Courier Prime", "DejaVu Sans Mono", Menlo, monospace';
+const MONO_FONT = '"Fira Mono", "IBM Plex Mono", Menlo, Consolas, monospace';
+
+/* ---- COLOUR PALETTES ----
+   Before any click the site is black on white. Each click on "(ttttt)" moves to the next palette;
+   every page, canvas and transition redraws in it, and the choice is remembered in this browser.
+   bg = paper, ink = text and stitches, acc = accents. */
+const ORIGINAL = { bg: "#FFFFFF", ink: "#111111", acc: ["#111111"] };
+const PALETTES = [
+  { bg: "#FFFFFF", ink: "#000000", acc: ["#000000"] },               // 1
+  { bg: "#FF0000", ink: "#000DFF", acc: ["#000DFF"] },               // 2
+  { bg: "#FFF600", ink: "#AB00CA", acc: ["#AB00CA"] },               // 3
+  { bg: "#33FF00", ink: "#FF0095", acc: ["#FF0095"] },               // 4
+  { bg: "#FFFFFF", ink: "#000000", acc: ["#000DFF", "#FF0000"] },    // 5
+  { bg: "#FFF600", ink: "#FF0095", acc: ["#00C3FF", "#33FF00"] },    // 6
+];
+let PAPER, INK, COLORS;   // COLORS: sprite colour index 0 ink, 1 accent 1, 2 accent 2
+function setColors(p) {
+  PAPER = p.bg; INK = p.ink;
+  const a1 = p.acc[0], a2 = p.acc[1] || p.acc[0];
+  COLORS = [INK, a1, a2];
+  const st = document.documentElement.style;
+  st.setProperty("--paper", PAPER); st.setProperty("--ink", INK); st.setProperty("--acc1", a1); st.setProperty("--acc2", a2);
+  document.documentElement.toggleAttribute("data-pal", p !== ORIGINAL);
+}
+let paletteIndex = -1;
+/* next palette, everywhere: the "(ttttt)" in the poem and the "(ttttt)" on every other page both call this.
+   Canvases that keep pre-drawn stitches listen for "stigma-palette" and redraw them. */
+function nextPalette() {
+  paletteIndex = paletteIndex < 0 ? 1 : (paletteIndex + 1) % PALETTES.length;   // first press skips black/white, which looks like the start
+  try { localStorage.setItem("stigma-palette", paletteIndex); } catch (e) {}
+  setColors(PALETTES[paletteIndex]);
+  dispatchEvent(new Event("stigma-palette"));
+}
+try { const v = parseInt(localStorage.getItem("stigma-palette"), 10); if (v >= 0 && v < PALETTES.length) paletteIndex = v; } catch (e) {}
+setColors(paletteIndex < 0 ? ORIGINAL : PALETTES[paletteIndex]);
+
+/* One stitch letter (U, ∩, or a small dot for the gap between letters) drawn into a
+   small canvas, so pages can stamp thousands of them quickly. */
+function sprite(kind, size, color) {
+  const c = document.createElement("canvas");
+  c.width = c.height = Math.ceil(size * DPR);
+  const g = c.getContext("2d");
+  g.scale(DPR, DPR); g.fillStyle = color;
+  g.font = `${size}px ${STITCH_FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(kind === 0 ? "U" : kind === 1 ? "∩" : "·", size / 2, size * .54);
+  return c;
+}
+function spriteSet(size) { return COLORS.map(col => [0, 1, 2].map(k => sprite(k, size, col))); }
+function fit(cv) {
+  const r = cv.getBoundingClientRect();
+  cv.width = Math.max(1, Math.round(r.width * DPR)); cv.height = Math.max(1, Math.round(r.height * DPR));
+  return { w: r.width, h: r.height };
+}
+/* Fit a 2000 × 1330 sheet to the window. On narrow screens zoom in on the area that is actually used. */
+function fitSheet(el, x0 = 300, x1 = 1980, y0 = 100, y1 = 1330) {
+  const W = innerWidth, H = innerHeight;
+  let s, tx, ty;
+  if (W >= 900) { s = Math.min(W / 2000, H / 1330); tx = (W - 2000 * s) / 2; ty = (H - 1330 * s) / 2; }
+  else { const bw = x1 - x0 + 40, bh = y1 - y0 + 30; s = Math.min(W / bw, H / bh); tx = (W - (x1 - x0) * s) / 2 - x0 * s; ty = (H - (y1 - y0) * s) / 2 - y0 * s; }
+  el.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+  return { s, tx, ty };
+}
+
+/* Pointer shared by every page. SP is a smoothed copy used where motion should feel soft. */
+const P = { x: -9999, y: -9999, lx: -9999, ly: -9999, vx: 0, vy: 0, active: false };
+const SP = { x: -9999, y: -9999, vx: 0, vy: 0 };
+addEventListener("pointermove", e => { P.x = e.clientX; P.y = e.clientY; if (!P.active) { P.lx = SP.x = P.x; P.ly = SP.y = P.y; } P.active = true; }, { passive: true });
+addEventListener("pointerdown", e => { P.x = P.lx = SP.x = e.clientX; P.y = P.ly = SP.y = e.clientY; P.active = true; }, { passive: true });
+addEventListener("pointerup", e => { if (e.pointerType !== "mouse") P.active = false; });
+document.documentElement.addEventListener("pointerleave", () => { P.active = false; });
+
+/* =====================================================================
+   2. PAGES + ROUTER
+   ===================================================================== */
+const PAGES = {
+  welcome: { n: "i.",    name: "i am",         parent: null,      hint: "" },
+  curtain: { n: "ii.",   name: "curtain",      parent: "welcome", hint: "" },
+  split:   { n: "iii.",  name: "you or world", parent: "curtain", hint: "" },
+  you:     { n: "iii.a", name: "you",          parent: "split",   hint: "" },
+  world:   { n: "iii.b", name: "world",        parent: "split",   hint: "nothing here listens" },
+  together: { n: "iii.b.1", name: "knit together", parent: "world", hint: "" },
+  map:      { n: "iii.b.2", name: "map",           parent: "world", hint: "" },
+};
+let active = null, busy = false;
+const enterHooks = {}, renderers = {}, leaveHooks = {};
+function show(id) {
+  if (active && active !== id && leaveHooks[active]) leaveHooks[active]();
+  document.querySelectorAll(".page").forEach(s => { s.hidden = s.dataset.page !== id; });
+  active = id;
+  document.body.classList.toggle("bare", id !== "curtain");
+  const p = PAGES[id];
+  setEnc($("where"), `${p.n}   ${p.name}`);
+  setEnc($("hint"), p.hint);
+  $("back").hidden = !p.parent;
+  $("palBtn").hidden = id === "welcome";
+  $("home").hidden = id === "welcome";
+  if (enterHooks[id]) enterHooks[id]();
+}
+async function go(id) {
+  if (busy || id === active || !PAGES[id]) return;
+  busy = true;
+  await rain.run(PAGES[id].name, () => show(id));
+  busy = false;
+}
+$("back").addEventListener("click", () => go(PAGES[active].parent));
+addEventListener("keydown", e => { if (e.key === "Escape" && PAGES[active]?.parent) go(PAGES[active].parent); });
+
+/* =====================================================================
+   3. TRANSITION: the code stream
+   Columns of U/∩ fall and lock until the sheet is covered, the stream is
+   held for a moment, then the columns drain away. No labels.
+   ===================================================================== */
+const rain = (() => {
+  const cv = $("rain"), g = cv.getContext("2d");
+  function run(label, swap) {
+    return new Promise(done => {
+      cv.style.pointerEvents = "auto";
+      const { w, h } = fit(cv);
+      const cell = w < 600 ? 15 : 18, cols = Math.ceil(w / cell), rows = Math.ceil(h / cell) + 1;
+      const spr = spriteSet(cell);
+      const k = RM ? .3 : 1, FILL = 640 * k, SPREAD = 480 * k, HOLD = RM ? 300 : 760;
+      const COVER = SPREAD + FILL, T2 = COVER + HOLD, END = T2 + SPREAD + FILL + 40;
+      const df = new Float32Array(cols), dd = new Float32Array(cols), hue = new Uint8Array(cols);
+      for (let c = 0; c < cols; c++) { df[c] = (c / cols) * SPREAD * .5 + Math.random() * SPREAD * .5; dd[c] = Math.random() * SPREAD; hue[c] = 1 + (Math.random() * 2 | 0); }
+      const N = cols * rows, grid = new Uint8Array(N), flipAt = new Float32Array(N);
+      for (let i = 0; i < N; i++) { grid[i] = Math.random() < .5 ? 0 : 1; flipAt[i] = Math.random() * 1600; }
+      const code = [], lab = new Int8Array(N).fill(-2);   // no destination label: the stream stays wordless
+      const lr = Math.floor(rows / 2) - 1, lc = Math.max(0, Math.floor((cols - code.length) / 2));
+      code.forEach((v, i) => { if (lc + i < cols) lab[(lc + i) * rows + lr] = v; });
+      const v = rows / FILL, clamp = x => Math.max(0, Math.min(1, x));
+      let t0 = null, swapped = false;
+      function frame(now) {
+        if (t0 === null) t0 = now;
+        const t = now - t0;
+        g.setTransform(DPR, 0, 0, DPR, 0, 0); g.clearRect(0, 0, w, h);
+        const labA = clamp((t - COVER + 160) / 300) * (1 - clamp((t - T2 + 80) / 260));
+        for (let c = 0; c < cols; c++) {
+          const head = (t - df[c]) * v, tail = (t - T2 - dd[c]) * v;
+          const r0 = Math.max(0, Math.floor(tail)), r1 = Math.min(rows, Math.ceil(head));
+          if (r1 <= r0) continue;
+          const x = c * cell;
+          g.globalAlpha = 1; g.fillStyle = PAPER; g.fillRect(x, r0 * cell, cell, (r1 - r0) * cell);
+          for (let r = r0; r < r1; r++) {
+            const i = c * rows + r;
+            if (t > flipAt[i]) { grid[i] ^= 1; flipAt[i] = t + 700 + Math.random() * 1600; }
+            let a = .16, glyph = grid[i], col = 0;
+            const nearHead = head < rows + 8 ? Math.max(0, 1 - (head - r) / 8) : 0;
+            const nearTail = tail > -1 ? Math.max(0, 1 - (r - tail) / 6) : 0;
+            if (nearHead > 0 || nearTail > 0) { col = hue[c]; a += Math.max(nearHead, nearTail) * .84; }
+            if (lab[i] !== -2 && labA > 0) {
+              if (lab[i] === -1) a *= 1 - labA; else { glyph = lab[i]; col = 0; a += (1 - a) * labA; }
+            }
+            g.globalAlpha = Math.min(1, a); g.drawImage(spr[col][glyph], x, r * cell, cell, cell);
+          }
+        }
+        if (!swapped && t >= COVER) { swapped = true; swap(); }
+        if (t < END) requestAnimationFrame(frame);
+        else { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); cv.style.pointerEvents = "none"; done(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+  return { run };
+})();
+
+/* =====================================================================
+   4. I · WELCOME: the knitting poem
+   - "i knit therefore i am    i knit therefore" → the curtain
+   - "(ttttt)" → next colour palette for the whole site
+   - "i.  am." → slides into place and the bio types itself in (click again to close)
+   - the cloud of i's under "it" drifts like noise
+   Coordinates are in sheet units (2000 × 1330). One column = 15.33, one row = 38.6.
+   ===================================================================== */
+(() => {
+  const sheet = $("sheet"), body = $("poemBody"), noise = $("noise");
+  const CW = 15.33, LH = 38.6, X0 = 325, Y0 = 193;
+  // [row, column, text]
+  const LINES = [
+    [0, 30.3, "tt"],
+    [1, 23.2, "kni"], [1, 29.2, "(tt)"], [1, 35.3, "ing"],
+    [2, 23.2, "kni"], [2, 30.3, "tt"], [2, 35.3, "ing"],
+    [3, 41, "tt ing"],
+    [4, 38.4, "kni"], [4, 48.4, "tting"],
+    [6, 38.4, "knit"], [6, 49.4, "ting"],   // "(ttttt)" between them is the palette button
+    [7, 54.5, "ting"],
+    [8, 44.3, "i knitknit"], [8, 63, "tig"],
+    [9, 47.8, "knit"], [9, 69.3, "ti"],
+    [10, 50.3, "knitting"],
+    [11, 50.3, "knitting"],
+    [12, 55.8, "tting"],
+    [13, 57.8, "ing"],
+    [14, 50.3, "knit"],
+    [15, 51.3, "nit"],
+    [16, 52.4, "it"],
+  ];
+  for (const [r, c, txt] of LINES) {
+    const s = document.createElement("span");
+    s.className = "ln"; s.textContent = txt;
+    s.style.left = (X0 + c * CW).toFixed(1) + "px"; s.style.top = (Y0 + r * LH).toFixed(1) + "px";
+    body.insertBefore(s, noise);
+  }
+
+  // the noise: two i's trickle out of "it", then a cloud of ~60
+  let seed = 41;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => rnd() + rnd() + rnd() - 1.5;
+  const pts = [[1149, 860], [1165, 877]];
+  while (pts.length < 64) {
+    const x = 1180 + gauss() * 70, y = 962 + gauss() * 66;
+    if (x > 1103 && x < 1262 && y > 892 && y < 1042) pts.push([x, y]);
+  }
+  const I = pts.map(([x, y], n) => {
+    const el = document.createElement("span");
+    el.textContent = "i"; el.style.left = (x - 7.7) + "px"; el.style.top = (y - 16) + "px";
+    noise.appendChild(el);
+    return { el, tx: 0, ty: 0, x: 0, y: 0, next: rnd() * 3000, p: rnd() * 6.28, f: .7 + rnd() * .8, fixed: n < 2 };
+  });
+  let stir = 1, stirTarget = 1;   // hovering the cloud stirs it up
+  const zone = document.createElement("div");
+  zone.style.cssText = "position:absolute;left:1080px;top:840px;width:210px;height:230px";
+  zone.addEventListener("pointerenter", () => { stirTarget = 2.6; });
+  zone.addEventListener("pointerleave", () => { stirTarget = 1; });
+  noise.appendChild(zone); noise.style.pointerEvents = "auto";
+
+  renderers.welcome = t => {
+    stir += (stirTarget - stir) * .04;
+    for (const p of I) {
+      if (!p.fixed && t > p.next) { p.tx = gauss() * 14 * stir; p.ty = gauss() * 12 * stir; p.next = t + (RM ? 99999 : 1600 + rnd() * 3600) / stir; }
+      p.x += (p.tx - p.x) * .035; p.y += (p.ty - p.y) * .035;
+      const wob = RM ? 0 : 2.2 * stir;
+      const dx = p.x + Math.sin(t * .0011 * p.f + p.p) * wob, dy = p.y + Math.cos(t * .0013 * p.f + p.p * 1.7) * wob;
+      p.el.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
+    }
+  };
+  enterHooks.welcome = () => fitSheet(sheet);
+
+  $("knitlink").addEventListener("click", () => go("curtain"));
+  $("iam").addEventListener("click", () => { $("iam").setAttribute("aria-expanded", sheet.classList.toggle("open")); });
+  $("knot5").addEventListener("click", nextPalette);
+})();
+
+/* =====================================================================
+   5. II · CURTAIN: hanging threads of U and ∩ (verlet physics)
+   Threads hang at ragged lengths, packed tight at the top and spreading toward the bottom.
+   Every thread spells "stigma pass through" in code. The cursor is a pair of brackets
+   that parts the threads softly. "(go through)" appears behind them after a while.
+
+   "(snow)" in the corner turns the room into a snow globe: every stitch comes loose
+   and falls to the floor. Moving the cursor is wind that throws them around the screen;
+   when the cursor rests, they drift slowly back down and pile up again.
+   "(threads)" hangs the curtain back up.
+   ===================================================================== */
+(() => {
+  const cv = $("curtain"), g = cv.getContext("2d");
+  const SEQ = codeOf("stigma pass through");
+  // Tuning: softer and smoother = lower PUSH/DRAG, higher DAMP, bigger RADIUS
+  const GRAVITY = .24, DAMP = .986, ITER = 6, RADIUS = 110, PUSH = 2.6, DRAG = .22, FOLLOW = .18;
+  let W, H, strands = [], spr, enteredAt = 0, travel = 0;
+
+  function build() {
+    ({ w: W, h: H } = fit(cv));
+    spr = spriteSet(13);
+    const sp = W < 700 ? 11 : 12;
+    strands = []; let gi = 0;
+    for (let x = -sp / 2; x < W + sp; x += sp) {
+      const size = 8 + (Math.random() * 4 | 0);            // small letters: 8–11 px
+      const total = H * (.32 + Math.pow(Math.random(), .55) * .76);
+      const segs = [0]; let y = 0;
+      while (y < total) { const f = y / H, s = size * 1.05 * (1 + f * f * 2.6) * rand(.95, 1.12); segs.push(s); y += s; }
+      const n = segs.length;
+      const S = { x0: x + rand(-1.5, 1.5), n, size, seg: Float32Array.from(segs),
+        x: new Float32Array(n), y: new Float32Array(n), px: new Float32Array(n), py: new Float32Array(n),
+        k: new Int8Array(n), c: new Uint8Array(n), jit: new Float32Array(n) };
+      let yy = -size;
+      for (let k = 0; k < n; k++) {
+        if (k) yy += S.seg[k];
+        S.x[k] = S.px[k] = S.x0; S.y[k] = S.py[k] = yy;
+        S.k[k] = SEQ[(k + gi * 3) % SEQ.length];
+        S.c[k] = Math.random() < .06 ? 1 + (Math.random() * 2 | 0) : 0;
+        S.jit[k] = Math.pow(k / n, 3) * rand(-1, 1) * 18;   // a few loose stitches at the bottom
+      }
+      strands.push(S); gi++;
+    }
+  }
+  function step(S, t, si) {
+    const { x, y, px, py, n, seg } = S, R2 = RADIUS * RADIUS;
+    for (let k = 1; k < n; k++) {
+      const vx = (x[k] - px[k]) * DAMP, vy = (y[k] - py[k]) * DAMP;
+      px[k] = x[k]; py[k] = y[k];
+      x[k] += vx + (RM ? 0 : Math.sin(t * .0006 + si * .35) * .008 * (k / n)); y[k] += vy + GRAVITY;
+      if (P.active) {
+        const dx = x[k] - SP.x, dy = (y[k] - SP.y) * .6, d2 = dx * dx + dy * dy;
+        if (d2 < R2) {
+          const d = Math.sqrt(d2) || 1, q = 1 - d / RADIUS, f = q * q * (3 - 2 * q);   // smoothstep falloff
+          x[k] += dx / d * f * PUSH + SP.vx * f * DRAG; y[k] += SP.vy * f * .06;
+        }
+      }
+    }
+    for (let it = 0; it < ITER; it++) for (let k = 1; k < n; k++) {
+      const j = k - 1, dx = x[k] - x[j], dy = y[k] - y[j], d = Math.sqrt(dx * dx + dy * dy) || 1, diff = (d - seg[k]) / d;
+      if (k === 1) { x[k] -= dx * diff; y[k] -= dy * diff; }
+      else { const hx = dx * diff * .5, hy = dy * diff * .5; x[k] -= hx; y[k] -= hy; x[j] += hx; y[j] += hy; }
+    }
+  }
+  function draw(S) {
+    const { x, y, n, size } = S;
+    for (let k = 1; k < n; k++) {
+      const ax = x[k] - x[k - 1], ay = y[k] - y[k - 1], len = Math.hypot(ax, ay) || 1;
+      const cs = ay / len, sn = -ax / len, mx = x[k] + S.jit[k], my = y[k];
+      if (my > H + size) continue;
+      const kind = S.k[k] < 0 ? 2 : S.k[k];
+      g.setTransform(cs * DPR, sn * DPR, -sn * DPR, cs * DPR, mx * DPR, my * DPR);
+      g.drawImage(spr[S.c[k]][kind], -size / 2, -size / 2, size, size);
+    }
+  }
+  /* ---- snow-globe mode ---- */
+  // Tuning: GRAV = how fast they fall, AIR = how long they float, WIND = how strongly the cursor carries them
+  const GRAV = .05, AIR = .982, WR = 180, WIND = .3, BLOW = .05, LIFT = .045, BUCKET = 6;
+  let mode = "threads", sn = null, heights = null;
+  function toSnow() {
+    const pts = [];
+    for (const S of strands) for (let k = 1; k < S.n; k++) if (S.y[k] < H + 20) pts.push([S.x[k] + S.jit[k], S.y[k], S.k[k] < 0 ? 2 : S.k[k], S.c[k], S.size]);
+    const n = pts.length;
+    sn = { n, x: new Float32Array(n), y: new Float32Array(n), vx: new Float32Array(n), vy: new Float32Array(n), rot: new Float32Array(n),
+      size: new Uint8Array(n), k: new Uint8Array(n), c: new Uint8Array(n), rest: new Uint8Array(n), b: new Int16Array(n), ph: new Float32Array(n) };
+    pts.forEach(([x, y, k, c, size], i) => {
+      sn.x[i] = x; sn.y[i] = Math.max(4, y); sn.vx[i] = rand(-.3, .3); sn.vy[i] = rand(.4, 1.4);
+      sn.k[i] = k; sn.c[i] = c; sn.size[i] = size; sn.ph[i] = Math.random() * 6.28;
+    });
+    heights = new Float32Array(Math.ceil(W / BUCKET) + 2);
+  }
+  function stepSnow(t) {
+    const s = sn, R2 = WR * WR, speed = Math.min(Math.hypot(SP.vx, SP.vy), 40), wind = P.active && speed > .25, nb = heights.length;
+    for (let i = 0; i < s.n; i++) {
+      let dx = 0, dy = 0, d2 = 1e9;
+      if (wind) { dx = s.x[i] - SP.x; dy = s.y[i] - SP.y; d2 = dx * dx + dy * dy; }
+      if (s.rest[i]) {                                   // lying in the pile: only a real gust lifts it
+        if (d2 < R2) { const q = 1 - Math.sqrt(d2) / WR; if (q * q * speed > .9) { s.rest[i] = 0; heights[s.b[i]] = Math.max(0, heights[s.b[i]] - s.size[i] * .5); s.vy[i] = -q * speed * .25; } }
+        if (s.rest[i]) continue;
+      }
+      s.vy[i] += GRAV;
+      s.vx[i] += RM ? 0 : Math.sin(t * .0015 + s.ph[i]) * .006;      // a little flutter on the way down
+      if (d2 < R2) {
+        const d = Math.sqrt(d2) || 1, q = 1 - d / WR, f = q * q;
+        s.vx[i] += SP.vx * f * WIND + dx / d * f * speed * BLOW;
+        s.vy[i] += SP.vy * f * WIND + dy / d * f * speed * BLOW - f * speed * LIFT;
+      }
+      s.vx[i] *= AIR; s.vy[i] *= AIR;
+      s.x[i] += s.vx[i]; s.y[i] += s.vy[i]; s.rot[i] += s.vx[i] * .05;
+      if (s.x[i] < 4) { s.x[i] = 4; s.vx[i] *= -.5; } else if (s.x[i] > W - 4) { s.x[i] = W - 4; s.vx[i] *= -.5; }
+      if (s.y[i] < 4) { s.y[i] = 4; s.vy[i] *= -.4; }
+      let b = Math.max(0, Math.min(nb - 1, s.x[i] / BUCKET | 0));
+      const floor = H - 6 - heights[b];
+      if (s.y[i] >= floor && s.vy[i] >= 0) {               // landed: roll into the lowest neighbouring spot
+        if (b > 0 && heights[b - 1] < heights[b] - 4) b--; else if (b < nb - 1 && heights[b + 1] < heights[b] - 4) b++;
+        s.x[i] = b * BUCKET + BUCKET / 2 + rand(-2, 2); s.y[i] = H - 6 - heights[b];
+        heights[b] += s.size[i] * .5; s.b[i] = b; s.rest[i] = 1; s.vx[i] = s.vy[i] = 0;
+      }
+    }
+  }
+  function drawSnow() {
+    const s = sn;
+    for (let i = 0; i < s.n; i++) {
+      const cs = Math.cos(s.rot[i]), snr = Math.sin(s.rot[i]), z = s.size[i];
+      g.setTransform(cs * DPR, snr * DPR, -snr * DPR, cs * DPR, s.x[i] * DPR, s.y[i] * DPR);
+      g.drawImage(spr[s.c[i]][s.k[i]], -z / 2, -z / 2, z, z);
+    }
+  }
+  function setMode(m) {
+    mode = m;
+    if (m === "snow") toSnow(); else build();
+    setEnc($("mode"), m === "snow" ? "(threads)" : "(snow)");
+  }
+  $("mode").addEventListener("click", () => setMode(mode === "snow" ? "threads" : "snow"));
+
+  enterHooks.curtain = () => {
+    build(); mode = "threads"; setEnc($("mode"), "(snow)"); enteredAt = performance.now(); travel = 0;
+    $("pass").classList.remove("shown");   // "(go through)" waits in the bottom-right corner
+  };
+  renderers.curtain = t => {
+    // smoothed pointer, so the threads are pushed by a soft hand, not a jerky one
+    const nx = SP.x + (P.x - SP.x) * FOLLOW, ny = SP.y + (P.y - SP.y) * FOLLOW;
+    SP.vx += ((nx - SP.x) - SP.vx) * .3; SP.vy += ((ny - SP.y) - SP.vy) * .3; SP.x = nx; SP.y = ny;
+    if (P.active) travel += Math.hypot(P.vx, P.vy);
+    if (!$("pass").classList.contains("shown") && (travel > 2600 || t - enteredAt > 14000)) $("pass").classList.add("shown");
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+    g.globalAlpha = 1;
+    if (mode === "snow") { stepSnow(t); drawSnow(); }
+    else strands.forEach((S, i) => { step(S, t, i); draw(S); });
+    if (P.active) {                                        // the cursor: a pair of brackets
+      g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      g.font = `18px ${MONO_FONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = INK;
+      g.fillText("(   )", P.x, P.y);
+    }
+  };
+  $("pass").addEventListener("click", () => go("split"));
+  addEventListener("stigma-palette", () => { if (W) spr = spriteSet(13); });
+  addEventListener("resize", () => { if (active === "curtain") { build(); if (mode === "snow") toSnow(); } });
+})();
+
+/* =====================================================================
+   6. III · YOU / WORLD: two word clouds.
+   "(uuuu)" opens you, "(ooooo)" opens world.
+   Moving the cursor blows the words apart; they drift back when it slows.
+   The faster you move, the further they fly, so the doors need a slow hand.
+   ===================================================================== */
+(() => {
+  const sheet = $("splitSheet");
+  // [x, y-centre, text] in sheet units, taken from the layout
+  const WORDS = [
+    [528, 416, "u"], [459, 455, "you"], [420, 493, "you"], [636, 493, "(you)"],
+    [271, 531, "you"], [489, 531, "u"], [459, 570, "you"], [574, 570, "you"],
+    [603, 621, "y"], [500, 647, "u"], [540, 686, "you"], [642, 686, "o"], [681, 686, "u"],
+    [497, 763, "you"], [642, 803, "y"],
+    [1375, 416, "w"], [1306, 455, "wo"], [1426, 455, "wo"], [1537, 455, "rld"], [1268, 493, "wor"],
+    [1165, 531, "wo"], [1318, 531, "orld"], [1503, 531, "w"], [1630, 531, "(world)"],
+    [1306, 570, "wo"], [1426, 570, "orl"], [1503, 609, "w"],
+    [1360, 647, "ld"], [1579, 647, "or"], [1708, 647, "ld"], [1468, 686, "world"],
+    [1398, 725, "wo"], [1483, 763, "rrrr"], [1583, 803, "world"],
+  ];
+  const CH = 15.33, items = [];
+  const add = (el, x, y, len, door) => items.push({ el, cx: x + len * CH / 2, cy: y, ox: 0, oy: 0, vx: 0, vy: 0, door });
+  const codeIt = (el, t) => { el.style.width = (t.length * CH) + "px"; el.style.height = "1em"; el.innerHTML = `<span class="mid">${encHTML(t)}</span>`; };
+  for (const [x, y, t] of WORDS) {
+    const el = document.createElement("span");
+    el.className = "ln"; el.style.left = x + "px"; el.style.top = (y - 16) + "px";
+    codeIt(el, t); sheet.appendChild(el); add(el, x, y, t.length, false);
+  }
+  sheet.querySelectorAll(".door").forEach(b => {
+    const t = b.textContent;
+    b.addEventListener("click", () => go(b.dataset.go));
+    add(b, parseFloat(b.style.left), parseFloat(b.style.top) + 16, t.length, true);
+    codeIt(b, t);
+  });
+  items.forEach(it => { it.el.style.willChange = "transform"; });
+
+  // Scatter tuning
+  const RADIUS = 230, KICK = .22, SPRING = .028, FRICTION = .88;
+  let fitS = { s: 1, tx: 0, ty: 0 };
+  enterHooks.split = () => { fitS = fitSheet(sheet, 240, 1760, 380, 840); items.forEach(it => { it.ox = it.oy = it.vx = it.vy = 0; }); };
+  renderers.split = () => {
+    const px = (P.x - fitS.tx) / fitS.s, py = (P.y - fitS.ty) / fitS.s;
+    const mvx = P.vx / fitS.s, mvy = P.vy / fitS.s, speed = Math.min(Math.hypot(mvx, mvy), 70);
+    for (const it of items) {
+      if (P.active && speed > .5) {
+        const dx = it.cx + it.ox - px, dy = it.cy + it.oy - py, d = Math.hypot(dx, dy) || 1;
+        if (d < RADIUS) {
+          const f = Math.pow(1 - d / RADIUS, 2) * speed * KICK * (it.door ? .5 : 1);
+          it.vx += dx / d * f + mvx * f * .04; it.vy += dy / d * f + mvy * f * .04;
+        }
+      }
+      it.vx = (it.vx - it.ox * SPRING) * FRICTION; it.vy = (it.vy - it.oy * SPRING) * FRICTION;
+      it.ox += it.vx; it.oy += it.vy;
+      it.el.style.transform = `translate(${it.ox.toFixed(2)}px, ${it.oy.toFixed(2)}px) rotate(${(it.vx * .8).toFixed(2)}deg)`;
+    }
+  };
+})();
+
+/* =====================================================================
+   7. THE KNITTING TOOL (used twice: III.a "you" alone, and III.b.1 "together", shared live)
+   a. the plate: a drawing made of letters, after old "first stitches" manuals.
+      I = the two needles; U/∩ heaped on them = work already knitted (it only breathes);
+      U/∩ hanging between them = the chart being knitted, one stitch per stitch of code typed.
+      The needles open and close only while someone types.
+   b. encoder / decoder + knit it yourself; "get a (gggg)guide" shows the chart and row-by-row pattern.
+   c. embroider it yourself: a picture or your words become a chart of fly stitches.
+   In "together", everyone's text is woven into one fabric, letter by letter in turn,
+   and each person's stitches keep their own palette colour.
+   ===================================================================== */
+const OWNER_COLORS = [2, 1, 0];                  // palette slots for knitters 1, 2, 3… (accent 2, accent 1, ink)
+const lettersOf = txt => [...txt.toUpperCase()].filter(ch => TABLE[ch]).map(ch => [...TABLE[ch]].map(s => s === "U" ? 0 : 1));
+
+const TOOL_HTML = p => `
+  <div class="col">
+    <h2 class="enc">encoder / decoder</h2>
+    <p class="small together-only" id="${p}Who" aria-live="polite"></p>
+    <label class="enc" for="${p}Text">text</label>
+    <textarea id="${p}Text" rows="3" spellcheck="false" autocomplete="off">${p === "t" ? "" : "i knit therefore i am"}</textarea>
+    <label class="enc" for="${p}Code">code</label>
+    <textarea id="${p}Code" rows="6" spellcheck="false" autocomplete="off"></textarea>
+    <p class="small"><span class="enc">type n for</span> ∩ · <span class="enc">a bar between words</span> |</p>
+    <div class="acts">
+      <button type="button" class="opt enc" id="${p}CopyCode">(copy code)</button>
+      <button type="button" class="opt enc" id="${p}Clear">(clear)</button>
+    </div>
+    <p class="small status" id="${p}Status" aria-live="polite"></p>
+  </div>
+  <div class="col">
+    <h2 class="enc">${p === "t" ? "knit it together" : "knit it yourself"}</h2>
+    <figure class="plate">
+      <canvas id="${p}Plate" aria-label="Two needles; new loops appear as you type"></canvas>
+      <figcaption><span class="enc">to knit plain</span> · <span class="enc">every stitch you type is knitted on, row by row</span></figcaption>
+    </figure>
+    <div class="ctrl"><span class="lab enc">pattern</span><span class="modes" id="${p}Modes"></span></div>
+    <div class="ctrl"><span class="lab enc">stitches</span>
+      <button type="button" class="opt" id="${p}WMinus" aria-label="Fewer stitches">(−)</button>
+      <span id="${p}WVal">27</span>
+      <button type="button" class="opt" id="${p}WPlus" aria-label="More stitches">(+)</button>
+    </div>
+    <p class="getg"><span class="enc">get a</span> <button type="button" class="opt enc" id="${p}G" aria-expanded="false" aria-controls="${p}Guide">(gggg)</button><span class="enc">guide</span></p>
+    <div id="${p}Guide" hidden>
+      <div class="chartwrap"><pre class="chart" id="${p}Chart" aria-label="Knitting chart"></pre></div>
+      <p class="small"><span class="enc">read from the bottom</span> · U <span class="enc">knit on the right side</span> · ∩ <span class="enc">purl on the right side</span></p>
+      <ol class="rows" id="${p}Rows"></ol>
+      <div class="acts"><button type="button" class="opt enc" id="${p}CopyPat">(copy pattern)</button></div>
+    </div>
+  </div>
+  <div class="col wide">
+    <h2 class="enc">embroider it yourself</h2>
+    <div class="emb">
+      <div>
+        <div class="ctrl"><span class="lab enc">from</span>
+          <button type="button" class="opt" data-src="text">(text)</button>
+          <button type="button" class="opt" data-src="picture">(picture)</button>
+        </div>
+        <label class="enc" for="${p}EText">your words · they become the stitches</label>
+        <textarea id="${p}EText" rows="2" spellcheck="false" autocomplete="off">stigma</textarea>
+        <div class="ctrl pic" id="${p}PicRow" hidden>
+          <label class="opt enc" for="${p}EFile">(choose a picture)</label>
+          <input type="file" id="${p}EFile" accept="image/*" class="visually-hidden">
+          <span class="small soft" id="${p}EFileName"></span>
+        </div>
+        <div class="ctrl"><span class="lab enc">width</span>
+          <button type="button" class="opt" id="${p}EMinus" aria-label="Narrower">(−)</button>
+          <span id="${p}EVal">48</span>
+          <button type="button" class="opt" id="${p}EPlus" aria-label="Wider">(+)</button>
+        </div>
+        <p class="small" id="${p}EInfo"></p>
+        <ol class="rows" id="${p}ESteps"></ol>
+        <div class="acts"><button type="button" class="opt enc" id="${p}CopyEmb">(copy embroidery)</button></div>
+      </div>
+      <div class="chartwrap"><pre class="echart" id="${p}EChart" aria-label="Embroidery chart"></pre></div>
+    </div>
+  </div>`;
+
+function makePlate(cv) {
+  const g = cv.getContext("2d");
+  const PITCH = 12, ROW_H = 15;
+  const ANGLE = 27, SWING = 9, SPEED = .004, STOP = 450;   // angle in degrees, how far it opens/closes, speed while typing, ms to come to rest
+  let W = 0, H = 0, cx = 0, cy = 0, len = 0, needleMarks = [], heap = [], born = [], count = 0, cols = 27, grid = null, owners = null;
+  let pulse = 0, pulseAt = -1e9, phase = 0, act = 0, lastT = 0;
+  function build() {
+    ({ w: W, h: H } = fit(cv));
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    cx = W * .5; cy = H * .16; len = W * .5;
+    needleMarks = [];
+    for (let s = -len * .14; s <= len; s += 13) needleMarks.push({ s, j: (rnd() - .5) * 3 });
+    heap = [];
+    for (let side = 0; side < 2; side++)
+      for (let i = 0; i < 60; i++) {
+        const t = .1 + Math.pow(rnd(), .8) * .55;
+        heap.push({ side, s: t * len, d: 6 + rnd() * 16 * (1 - t * .5), along: (rnd() - .5) * 6, k: rnd() < .5 ? 0 : 1, r: (rnd() - .5) * .5, ph: rnd() * 6.28, f: .6 + rnd() * .8 });
+      }
+  }
+  // n = stitches typed, chart = rows, w = stitches per row, own = palette slot of each stitch (knit order) or null
+  function set(n, chart, w, own) {
+    const now = performance.now();
+    if (n !== count) act = 1;
+    if (n > count) { for (let i = count; i < n; i++) born[i] = now + (i - count) * 35; pulse = 1; pulseAt = now; }
+    born.length = n; count = n; grid = chart; cols = w; owners = own;
+  }
+  function glyph(ch, x, y, color, a = 1, rot = 0) {
+    g.globalAlpha = a; g.fillStyle = color;
+    g.setTransform(DPR * Math.cos(rot), DPR * Math.sin(rot), -DPR * Math.sin(rot), DPR * Math.cos(rot), x * DPR, y * DPR);
+    g.fillText(ch, 0, 0);
+  }
+  function draw(t) {
+    if (!W) return;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+    g.font = `14px ${STITCH_FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    const ink = COLORS[0], loop = COLORS[2], soft = loop === ink ? .7 : 1;
+    const dt = Math.min(64, t - lastT); lastT = t;
+    act *= Math.exp(-dt / STOP); if (!RM) phase += dt * SPEED * act;
+    const p = RM ? 0 : Math.exp(-(t - pulseAt) / 300) * pulse;
+    const th = (ANGLE + Math.sin(phase) * SWING + p * 2.5) * Math.PI / 180;
+    const c = Math.cos(th), sn = Math.sin(th);
+    const dir = [[-c, sn], [c, sn]], nor = [[sn, c], [-sn, c]];
+    const at = (side, s, d = 0) => [cx + dir[side][0] * s + nor[side][0] * d, cy + dir[side][1] * s + nor[side][1] * d];
+    for (let side = 0; side < 2; side++)
+      for (const m of needleMarks) { const [x, y] = at(side, m.s, m.j); glyph("I", x, y, ink, 1, side ? th : -th); }
+    for (const q of heap) {
+      const nx = RM ? 0 : Math.sin(t * .002 * q.f + q.ph) * 1.4, ny = RM ? 0 : Math.cos(t * .0017 * q.f + q.ph) * 1.4;
+      const [x, y] = at(q.side, q.s + q.along, q.d);
+      glyph(q.k ? "∩" : "U", x + nx, y + ny, loop, soft, q.r + (q.side ? th : -th) * .5);
+    }
+    if (!grid || !count) { g.globalAlpha = 1; return; }
+    const half = y => Math.max(0, (y - cy) * c / sn);
+    const top = cy + (cols * 7 + 30) / 2 * sn / c;
+    const rowsDone = Math.ceil(count / cols);
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / cols), pos = i % cols, rs = row % 2 === 0;
+      const col = rs ? cols - 1 - pos : pos;
+      const depth = rowsDone - 1 - row, y0 = top + depth * ROW_H;
+      if (y0 > H + 10) continue;
+      const age = Math.min(1, Math.max(0, (t - born[i]) / 420)), e = 1 - Math.pow(1 - age, 3);
+      const pitch = Math.min(PITCH, (half(y0) * 2 - 30) / cols), left = cx - (cols - 1) * pitch / 2;
+      const nx = RM ? 0 : Math.sin(t * .0018 + i * .7) * .8;
+      const v = grid[row % grid.length][col];
+      const fade = Math.max(.25, 1 - Math.max(0, y0 - H * .7) / (H * .35));
+      const color = owners ? COLORS[owners[i]] : loop;
+      glyph(v ? "∩" : "U", left + col * pitch + nx, y0 - (1 - e) * 10, color, e * (owners ? 1 : soft) * fade);
+    }
+    g.globalAlpha = 1;
+  }
+  return { build, set, draw };
+}
+
+function makeTool(pageId, p, shared) {
+  const page = document.querySelector(`[data-page="${pageId}"]`), root = page.querySelector(".tool");
+  root.innerHTML = TOOL_HTML(p);
+  const q = id => $(p + id);
+  const plate = makePlate(q("Plate"));
+  const tText = q("Text"), tCode = q("Code"), status = q("Status");
+  const ROWS = 30;
+  let width = 27, mode = "text";
+  let mates = [];                                  // together: [{peer, text, me}] in a stable order
+
+  const encodeText = txt => txt.toUpperCase().split(/\s+/).filter(Boolean)
+    .map(w => [...w].map(c => TABLE[c] || "?????").join(" ")).join(" | ");
+  const BACK = Object.fromEntries(Object.entries(TABLE).map(([k, v]) => [v, k]));
+  const decodeCode = code => code.replace(/[nN]/g, "∩").replace(/u/g, "U").split("|")
+    .map(ch => ch.trim().split(/\s+/).filter(Boolean)).filter(w => w.length)
+    .map(w => w.map(g => BACK[g] || "?").join("")).join(" ").toLowerCase();
+  tText.addEventListener("input", () => { tCode.value = encodeText(tText.value); knit(); share(); });
+  tCode.addEventListener("input", () => { tText.value = decodeCode(tCode.value); knit(); share(); });
+
+  const MODES = {
+    text:    null,                                                     // exactly the text, once
+    line:    (get, W, H, r, c) => get(r * W + c),
+    mirror:  (get, W, H, r, c) => get(r * Math.ceil(W / 2) + Math.min(c, W - 1 - c)),
+    diamond: (get, W, H, r, c) => get(Math.abs(r - (H - 1) / 2 | 0) + Math.abs(c - (W - 1) / 2 | 0)),
+    squares: (get, W, H, r, c) => get(Math.max(Math.abs(r - (H - 1) / 2 | 0), Math.abs(c - (W - 1) / 2 | 0))),
+    chevron: (get, W, H, r, c) => get(r + Math.abs(c - (W - 1) / 2 | 0)),
+    drift:   (get, W, H, r, c) => get(c + r),
+    blocks:  (get, W, H, r, c) => get(Math.floor(c / 3) + Math.floor(r / 3) * Math.ceil(W / 3)),
+  };
+  q("Modes").innerHTML = Object.keys(MODES).map(m => `<button type="button" class="opt" data-mode="${m}">(${m})</button>`).join("");
+  q("Modes").querySelectorAll("[data-mode]").forEach(b => { encodeTree(b); b.addEventListener("click", () => { mode = b.dataset.mode; knit(); }); });
+
+  // the stitches to knit, and who each belongs to (together: everyone's letters taken in turn)
+  function stream() {
+    if (!shared || !mates.length) return { bits: lettersOf(tText.value).flat(), own: null };
+    const seqs = mates.map(m => lettersOf(m.me ? tText.value : m.text));
+    const bits = [], own = [], most = Math.max(0, ...seqs.map(s => s.length));
+    for (let k = 0; k < most; k++) seqs.forEach((s, j) => { if (s[k]) for (const b of s[k]) { bits.push(b); own.push(OWNER_COLORS[j % OWNER_COLORS.length]); } });
+    return { bits, own };
+  }
+
+  function knit() {
+    let { bits, own } = stream();
+    const typed = bits.length;
+    if (!bits.length) { bits = codeOf("stigma").filter(v => v >= 0); own = null; }
+    const L = bits.length, get = i => bits[((i % L) + L) % L], grid = [], pad = [], og = [];
+    let rows;
+    if (mode === "text") {
+      rows = Math.max(1, Math.ceil(L / width));
+      for (let r = 0; r < rows; r++) { grid.push(new Array(width).fill(0)); pad.push(new Array(width).fill(false)); og.push(new Array(width).fill(-1)); }
+      for (let i = 0; i < rows * width; i++) {
+        const r = Math.floor(i / width), pp = i % width, c = r % 2 === 0 ? width - 1 - pp : pp;
+        if (i < L) { grid[r][c] = bits[i]; if (own) og[r][c] = own[i]; } else pad[r][c] = true;
+      }
+    } else {
+      rows = ROWS;
+      for (let r = 0; r < rows; r++) { const row = []; for (let c = 0; c < width; c++) row.push(MODES[mode](get, width, rows, r, c)); grid.push(row); pad.push(new Array(width).fill(false)); og.push(new Array(width).fill(-1)); }
+    }
+    let out = "";
+    for (let r = rows - 1; r >= 0; r--) {
+      const n = r + 1, odd = n % 2 === 1;
+      out += (odd ? "   " : String(n).padStart(2) + " ") + grid[r].map((v, c) => {
+        const ch = v ? "∩" : "U";
+        if (pad[r][c]) return '<span class="pad">U</span>';
+        if (og[r][c] >= 0) return `<span class="o${og[r][c]}">${ch}</span>`;
+        return v ? '<span class="n">∩</span>' : "U";
+      }).join(" ") + (odd ? " " + n : "") + "\n";
+    }
+    q("Chart").innerHTML = out;
+    plate.set(typed, grid, width, mode === "text" && own ? own : null);
+    const fill = mode === "text" ? rows * width - L : 0;
+    const lines = [`cast on ${width} stitches.`];
+    for (let r = 0; r < rows; r++) {
+      const n = r + 1, rs = n % 2 === 1, seq = rs ? grid[r].slice().reverse() : grid[r].slice();
+      const sts = seq.map(v => (rs ? v === 0 : v === 1) ? "k" : "p");
+      const runs = []; sts.forEach(s => { const l = runs[runs.length - 1]; if (l && l[0] === s) l[1]++; else runs.push([s, 1]); });
+      lines.push(`row ${n} (${rs ? "rs" : "ws"}): ${runs.map(([s, k]) => s + k).join(", ")}`);
+    }
+    if (fill > 0) lines.push(`the last ${fill} stitches of row ${rows} (pale on the chart) are only filler, so the row is full.`);
+    lines.push("bind off in pattern.");
+    q("Rows").innerHTML = lines.map(l => `<li>${l}</li>`).join("");
+    q("WVal").textContent = width;
+    q("Modes").querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+  }
+  q("WMinus").addEventListener("click", () => { width = Math.max(25, width - 1); knit(); });
+  q("WPlus").addEventListener("click", () => { width = Math.min(30, width + 1); knit(); });
+  q("G").addEventListener("click", () => {
+    const gd = q("Guide"); gd.hidden = !gd.hidden;
+    q("G").setAttribute("aria-expanded", !gd.hidden); q("G").classList.toggle("on", !gd.hidden);
+  });
+
+  async function copy(text, label, fallbackEl) {
+    try { await navigator.clipboard.writeText(text); setEnc(status, label + " copied"); }
+    catch (e) { if (fallbackEl) { fallbackEl.focus(); fallbackEl.select(); } setEnc(status, "selected, press cmd c"); }
+  }
+  q("CopyCode").addEventListener("click", () => copy(tCode.value, "code", tCode));
+  q("Clear").addEventListener("click", () => { tText.value = ""; tCode.value = ""; knit(); share(); tText.focus(); });
+  q("CopyPat").addEventListener("click", () => {
+    const head = `stigma · ${mode} · ${width} stitches × ${q("Rows").children.length - 2} rows\ntext: ${tText.value}\nU = knit on the right side, ∩ = purl on the right side\n\n`;
+    copy(head + q("Chart").textContent + "\n" + [...q("Rows").children].map(li => li.textContent).join("\n"), "pattern");
+  });
+
+  /* ---- embroidery ---- */
+  const eText = q("EText"), eFile = q("EFile");
+  let src = "text", ew = 48, picture = null;
+  function fromText(txt, W) {
+    const lines = (txt.trim() || "stigma").split(/\s+/).slice(0, 4), LH = 12, H = lines.length * LH + 2;
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const x = c.getContext("2d");
+    x.font = `900 ${LH}px "Arial Black", "Helvetica Neue", Arial, sans-serif`; x.textBaseline = "middle"; x.fillStyle = "#000";
+    lines.forEach((l, i) => { const m = x.measureText(l).width || 1, sx = Math.min(3, (W - 2) / m); x.setTransform(sx, 0, 0, 1, 1, 1 + i * LH + LH / 2); x.fillText(l, 0, 0); });
+    const d = x.getImageData(0, 0, W, H).data, lv = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) lv[i] = d[i * 4 + 3] > 110 ? 2 : 0;
+    return { W, H, lv };
+  }
+  function fromPicture(img, W) {
+    const H = Math.max(8, Math.min(90, Math.round(W * img.naturalHeight / img.naturalWidth * .9)));
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const x = c.getContext("2d"); x.drawImage(img, 0, 0, W, H);
+    const d = x.getImageData(0, 0, W, H).data, v = new Float32Array(W * H);
+    let lo = 1, hi = 0;
+    for (let i = 0; i < W * H; i++) { const a = d[i * 4 + 3] / 255, l = (.299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2]) / 255; v[i] = (1 - l) * a; lo = Math.min(lo, v[i]); hi = Math.max(hi, v[i]); }
+    const span = hi - lo || 1, lv = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) v[i] = (v[i] - lo) / span;
+    for (let y = 0; y < H; y++) for (let xx = 0; xx < W; xx++) {
+      const i = y * W + xx, qq = Math.max(0, Math.min(2, Math.round(v[i] * 2))), err = v[i] - qq / 2;
+      lv[i] = qq;
+      if (xx + 1 < W) v[i + 1] += err * 7 / 16;
+      if (y + 1 < H) { if (xx > 0) v[i + W - 1] += err * 3 / 16; v[i + W] += err * 5 / 16; if (xx + 1 < W) v[i + W + 1] += err / 16; }
+    }
+    return { W, H, lv };
+  }
+  function embroider() {
+    const gg = src === "picture" && picture ? fromPicture(picture, ew) : fromText(eText.value, ew);
+    let bits = codeOf(eText.value).filter(b => b >= 0);
+    if (!bits.length) bits = codeOf("stigma").filter(b => b >= 0);
+    let k = 0, n1 = 0, n2 = 0, out = "";
+    const rowsTxt = [];
+    for (let y = 0; y < gg.H; y++) {
+      let line = "", plain = "";
+      for (let x = 0; x < gg.W; x++) {
+        const l = gg.lv[y * gg.W + x];
+        if (!l) { line += '<span class="dot">·</span> '; plain += "· "; continue; }
+        const ch = bits[k++ % bits.length] ? "∩" : "U";
+        if (l === 2) n1++; else n2++;
+        line += `<span class="${l === 2 ? "t1" : "t2"}">${ch}</span> `; plain += ch + " ";
+      }
+      out += line + "\n"; rowsTxt.push(plain);
+    }
+    q("EChart").innerHTML = out;
+    const cm = v => (v * 2.54 / 14).toFixed(1);
+    setEnc(q("EInfo"), `${gg.W} × ${gg.H} stitches · ${n1 + n2} in all`);
+    q("ESteps").innerHTML = [
+      `<li><span class="t1">■</span> thread 1: ${n1} stitches${n2 ? ` · <span class="t2">■</span> thread 2: ${n2} stitches` : ""}</li>`,
+      `<li>on 14-count aida the piece is about ${cm(gg.W)} × ${cm(gg.H)} cm. one square of the chart = one stitch.</li>`,
+      `<li>U = fly stitch opening upward: come up at the top-left of the square, go down at the top-right and leave a loop, come up at the bottom centre inside the loop and tack it down.</li>`,
+      `<li>∩ = the same fly stitch turned upside down: start at the bottom corners, tack at the top centre.</li>`,
+      `<li>work row by row from the top. the order of U and ∩ is the code of “${esc(eText.value.trim() || "stigma")}”, so the piece spells your words in stitches.</li>`,
+    ].join("");
+    q("CopyEmb").onclick = () => copy(`stigma embroidery · ${gg.W} × ${gg.H} · words: ${eText.value}\nU = fly stitch opening up, ∩ = fly stitch opening down, · = no stitch\n\n` + rowsTxt.join("\n"), "embroidery");
+    root.querySelectorAll("[data-src]").forEach(b => b.classList.toggle("on", b.dataset.src === src));
+    q("PicRow").hidden = src !== "picture";
+    q("EVal").textContent = ew;
+  }
+  root.querySelectorAll("[data-src]").forEach(b => { encodeTree(b); b.addEventListener("click", () => { src = b.dataset.src; embroider(); }); });
+  eText.addEventListener("input", embroider);
+  q("EMinus").addEventListener("click", () => { ew = Math.max(24, ew - 4); embroider(); });
+  q("EPlus").addEventListener("click", () => { ew = Math.min(80, ew + 4); embroider(); });
+  eFile.addEventListener("change", () => {
+    const f = eFile.files && eFile.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => { picture = img; src = "picture"; embroider(); }; img.src = r.result; };
+    r.readAsDataURL(f);
+    q("EFileName").textContent = f.name;
+  });
+
+  /* ---- together: the room ----
+     Each knitter's text travels as their presence ({knit: "…"}); everyone in the room knits
+     the same fabric, letters taken in turn by a stable order. Nothing is stored. */
+  let room = null, sendTimer = null, connecting = false;
+  function who() {
+    if (!shared) return;
+    let line;
+    if (!room) line = "alone · the room opens for signed-in viewers of this page";
+    else {
+      const others = mates.filter(m => !m.me).length;
+      line = others ? `knitting with ${others} other${others > 1 ? "s" : ""}` : "alone for now · open this page with someone";
+    }
+    const keys = mates.map((m, j) => `<span class="o${OWNER_COLORS[j % OWNER_COLORS.length]}">U</span>${m.me ? " " + wordHTML("(you)") : ""}`).join("  ");
+    q("Who").innerHTML = encHTML(line) + (mates.length ? " · " + keys : "");
+  }
+  function share() {
+    if (!shared || !room) return;
+    clearTimeout(sendTimer);
+    sendTimer = setTimeout(() => room.presence({ knit: tText.value.slice(0, 300) }).catch(() => {}), 120);
+  }
+  async function connect() {
+    if (connecting || room) return;
+    connecting = true;
+    try { room = window.claude && window.claude.use ? await window.claude.use("room") : null; } catch (e) { room = null; }
+    if (room) {
+      room.onPeers(ch => {
+        mates = ch.peers.filter(pe => pe.kind === "viewer" && (typeof pe.presence.knit === "string" || pe.sameTab))
+          .map(pe => ({ peer: pe.peer, text: String(pe.presence.knit || "").slice(0, 300), me: pe.isMe && pe.sameTab }))
+          .sort((a, b) => (a.peer < b.peer ? -1 : 1));
+        knit(); who();
+      });
+      share();
+    }
+    who();
+  }
+
+  document.querySelectorAll(`[data-page="${pageId}"] .enc`).forEach(encodeTree);
+  tCode.value = encodeText(tText.value);
+  enterHooks[pageId] = () => { plate.build(); knit(); if (shared) { connect(); share(); } };
+  leaveHooks[pageId] = () => { if (shared && room) room.presence({ knit: null }).catch(() => {}); };
+  renderers[pageId] = t => plate.draw(t);
+  knit(); embroider(); who();
+}
+makeTool("you", "y", false);
+makeTool("together", "t", true);
+
+/* =====================================================================
+   8. III.b · WORLD: a sheet of stitches, dense at the top and thinning
+   downward. Columns re-scramble on their own clock.
+   ===================================================================== */
+(() => {
+  const cv = $("poster"), g = cv.getContext("2d");
+  let W, H, cols, rows, sp, spr, seed;
+  addEventListener("stigma-palette", () => { if (W) spr = spriteSet(15); });
+  enterHooks.world = () => { ({ w: W, h: H } = fit(cv)); sp = W < 700 ? 20 : 24; cols = Math.floor(W / sp); rows = Math.floor(H * .7 / sp); spr = spriteSet(15); seed = Math.random() * 1000; };
+  const hash = (a, b, c) => { const s = Math.sin(a * 127.1 + b * 311.7 + c * 74.7 + seed) * 43758.5453; return s - Math.floor(s); };
+  renderers.world = t => {
+    g.setTransform(DPR, 0, 0, DPR, 0, 0); g.clearRect(0, 0, W, H);
+    const ox = (W - cols * sp) / 2 + sp / 2 - 7, oy = 74;
+    for (let c = 0; c < cols; c++) {
+      const epoch = RM ? 0 : Math.floor((t + c * 137) / 4000);       // each column turns over every 4 s, staggered
+      for (let r = 0; r < rows; r++) {
+        const keep = Math.pow(1 - r / rows, 1.6);                     // density falls away toward the bottom
+        if (hash(c, r, epoch) > keep) continue;
+        const k = hash(r, c, epoch + 9) < .5 ? 0 : 1;
+        const col = hash(c + 3, r, epoch) < .05 ? 1 + ((c + r) % 2) : 0;
+        g.drawImage(spr[col][k], ox + c * sp, oy + r * sp * (1 + r / rows * .5), 15, 15);
+      }
+    }
+  };
+})();
+
+/* =====================================================================
+   8b. III.b · WORLD doors, and III.b.2 · MAP
+   The map is a grid of "I" — the same sticks the needles are made of. Each land cell
+   belongs to a country; hovering a country lights it up and writes its name in stitches.
+   Country shapes come from the world outline that ships with ECharts 4 (loaded once
+   from jsDelivr); it is read through a tiny stand-in, so ECharts itself is never loaded.
+   ===================================================================== */
+document.querySelectorAll('[data-page="world"] .enc').forEach(encodeTree);
+document.querySelectorAll(".wdoor").forEach(b => b.addEventListener("click", () => go(b.dataset.go)));
+
+(() => {
+  const cv = $("mapCv"), g = cv.getContext("2d"), msg = $("mapMsg");
+  const LAT_TOP = 84, LAT_BOTTOM = -58;
+  let feats = null, loading = false, W = 0, H = 0, cols = 0, rows = 0, deg = 2, cell = 8, ox = 0, oy = 0;
+  let idx = null, base = null, hover = -1, lastKey = "";
+
+  function decodeRing(str, off, scale) {           // ECharts' compact coordinate strings → [lon, lat] pairs
+    const out = []; let px = off[0], py = off[1];
+    for (let i = 0; i < str.length; i += 2) {
+      let x = str.charCodeAt(i) - 64, y = str.charCodeAt(i + 1) - 64;
+      x = (x >> 1) ^ (-(x & 1)); y = (y >> 1) ^ (-(y & 1));
+      x += px; y += py; px = x; py = y;
+      out.push([x / scale, y / scale]);
+    }
+    return out;
+  }
+  function parse(geo) {
+    const scale = geo.UTF8Scale || 1024, list = [];
+    for (const f of geo.features) {
+      const gm = f.geometry, enc = geo.UTF8Encoding;
+      const polys = gm.type === "Polygon" ? [gm.coordinates.map((r, i) => enc ? decodeRing(r, gm.encodeOffsets[i], scale) : r)]
+        : gm.coordinates.map((poly, i) => poly.map((r, j) => enc ? decodeRing(r, gm.encodeOffsets[i][j], scale) : r));
+      let x0 = 180, x1 = -180, y0 = 90, y1 = -90;
+      for (const poly of polys) for (const ring of poly) for (const [x, y] of ring) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      list.push({ name: (f.properties && f.properties.name) || "", polys, box: [x0, y0, x1, y1] });
+    }
+    return list;
+  }
+  function inside(poly, x, y) {                     // even-odd rule over all rings (holes included)
+    let c = false;
+    for (const ring of poly) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  function load() {
+    if (feats || loading) return;
+    loading = true; setEnc(msg, "threading the needles");
+    window.echarts = window.echarts || {};
+    window.echarts.registerMap = (name, geo) => { if (name === "world" && !feats) { feats = parse(geo); setEnc(msg, ""); build(); } };
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js";
+    s.onerror = () => setEnc(msg, "the map could not be loaded here");
+    document.head.appendChild(s);
+    setTimeout(() => { if (!feats) setEnc(msg, "the map could not be loaded here"); }, 15000);
+  }
+  function build() {
+    ({ w: W, h: H } = fit(cv));
+    if (!feats) return;
+    cols = Math.max(90, Math.min(240, Math.floor(W / 7.5)));
+    deg = 360 / cols; rows = Math.round((LAT_TOP - LAT_BOTTOM) / deg);
+    cell = Math.min(W / cols, (H - 120) / rows); ox = (W - cols * cell) / 2; oy = (H - rows * cell) / 2;
+    idx = new Int16Array(cols * rows).fill(-1);
+    for (let r = 0; r < rows; r++) {
+      const lat = LAT_TOP - (r + .5) * deg;
+      for (let c = 0; c < cols; c++) {
+        const lon = -180 + (c + .5) * deg;
+        for (let f = 0; f < feats.length; f++) {
+          const b = feats[f].box;
+          if (lon < b[0] || lon > b[2] || lat < b[1] || lat > b[3]) continue;
+          if (feats[f].polys.some(poly => inside(poly, lon, lat))) { idx[r * cols + c] = f; break; }
+        }
+      }
+    }
+    exampleNames.clear(); feats.forEach(f => { if (exampleFor(f.name).length) exampleNames.add(f.name); });
+    paintBase(); lastKey = "";
+  }
+  const tilt = (r, c) => Math.sin(r * 1.7 + c * .9) * .22 + Math.sin(c * .31 - r * .23) * .18;   // sticks lean a little, like needles
+  function stick(ctx, x, y, rot, color, a) {
+    ctx.globalAlpha = a; ctx.fillStyle = color;
+    ctx.setTransform(DPR * Math.cos(rot), DPR * Math.sin(rot), -DPR * Math.sin(rot), DPR * Math.cos(rot), x * DPR, y * DPR);
+    ctx.fillText("I", 0, 0);
+  }
+  function paintBase() {                            // all land, drawn once into an offscreen layer
+    base = document.createElement("canvas"); base.width = cv.width; base.height = cv.height;
+    const b = base.getContext("2d");
+    b.font = `${Math.round(cell * 1.15)}px ${STITCH_FONT}`; b.textAlign = "center"; b.textBaseline = "middle";
+    const soft = COLORS[2] === COLORS[0] ? .5 : .75;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++)
+      if (idx[r * cols + c] >= 0) { const nm = feats[idx[r * cols + c]].name, v = voiced.has(nm) || exampleNames.has(nm); stick(b, ox + (c + .5) * cell, oy + (r + .5) * cell, tilt(r, c), v ? COLORS[2] : COLORS[0], v ? 1 : soft); }
+  }
+  enterHooks.map = () => { load(); build(); connectVoices(); };
+
+  /* ---- voices: statements left on countries by anónimos ----
+     Stored in the page's database: each signed-in person keeps one document, voices/<their id>,
+     holding the statements they published ({c: country, t: text, at: time}). Everyone can read
+     all of them; nobody can change anyone else's. No names are stored or shown. */
+  /* ---- example statements ----
+     Written for this project to show what a country's page looks like once people speak there.
+     They are always labelled "ejemplo" (not "anónimo"), so no one mistakes them for real visitors.
+     Keys are country names as the map spells them (several spellings allowed, separated by |). */
+  const EXAMPLES = {
+    "Spain": ["we stitch the names back into the streets", "a scarf for every bench in the plaza"],
+    "Portugal": ["slow hands, long rows, no hurry"],
+    "France": ["we knit on the steps until they listen", "one row for every closed library"],
+    "United Kingdom|U.K.": ["tea, needles, and a long list of demands"],
+    "Ireland": ["my grandmother's pattern still holds"],
+    "Germany": ["the wall came down stitch by stitch"],
+    "Netherlands": ["a blanket the length of a canal"],
+    "Belgium": ["purl for the people who are not counted"],
+    "Italy": ["la nonna knows the code already"],
+    "Switzerland": ["neutral yarn, loud colours"],
+    "Austria": ["we knit in the waiting rooms"],
+    "Poland": ["every loop is a vote"],
+    "Czech Rep.|Czech Republic|Czechia": ["quiet rows in the old square"],
+    "Hungary": ["the pattern remembers what the news forgets"],
+    "Romania": ["warm hands for cold borders"],
+    "Greece": ["we unravel the debt one strand at a time"],
+    "Ukraine": ["we knit socks for the night shift", "the thread does not break"],
+    "Russia": ["some words can only be written in stitches"],
+    "Sweden": ["long winters, longer scarves"],
+    "Norway": ["a pattern for the fishermen who did not come back"],
+    "Finland": ["silence is also a stitch"],
+    "Denmark": ["we wrap the bicycles in colour"],
+    "Turkey": ["the carpet knows our history"],
+    "Morocco": ["blue thread for the old medina"],
+    "Algeria": ["my mother's hands, my hands"],
+    "Egypt": ["we knit under the same sun as the pyramids"],
+    "Nigeria": ["loud colours for loud voices"],
+    "Ghana": ["the cloth tells who we are"],
+    "Kenya": ["a scarf for every girl who goes to school"],
+    "Ethiopia": ["slow coffee, slow stitches"],
+    "South Africa": ["we stitch the stories they left out"],
+    "Senegal": ["thread is a kind of memory"],
+    "Brazil": ["one stitch for every tree we lost", "a hammock for the whole street"],
+    "Argentina": ["the mothers knit white scarves"],
+    "Chile": ["we knit in the plaza every thursday"],
+    "Peru": ["alpaca wool, older than the borders"],
+    "Bolivia": ["the mountain watches our hands"],
+    "Colombia": ["colours louder than the silence"],
+    "Venezuela": ["we knit for the ones who left"],
+    "Mexico": ["for the ones who are still missing"],
+    "Cuba": ["old yarn, new patterns"],
+    "United States|United States of America": ["a quilt with every name on it", "knit one, purl one, call your rep"],
+    "Canada": ["warm hats for the long march"],
+    "Japan": ["mending is not shame, it is gold"],
+    "Korea|South Korea|Republic of Korea": ["we knit in the subway between stops"],
+    "China": ["small stitches carry far"],
+    "Mongolia": ["felt and wool and open sky"],
+    "India": ["the spinning wheel was a protest too"],
+    "Pakistan": ["thread for the girls who read"],
+    "Bangladesh": ["we made your clothes. remember us"],
+    "Iran": ["we knit our hair into the pattern"],
+    "Saudi Arabia": ["needles move where voices cannot"],
+    "Kazakhstan": ["a yurt of wool, a home anywhere"],
+    "Thailand": ["the river carries our patterns south"],
+    "Vietnam": ["mother taught me to repair, not replace"],
+    "Philippines": ["we knit during the typhoon"],
+    "Indonesia": ["batik in the morning, wool at night"],
+    "Australia": ["scarves for the koalas, scarves for us"],
+    "New Zealand": ["knit together, stay together"],
+  };
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z]/g, "");
+  const exampleFor = name => {
+    const n = norm(name);
+    for (const [keys, lines] of Object.entries(EXAMPLES)) if (keys.split("|").some(k => norm(k) === n)) return lines;
+    return [];
+  };
+  const exampleNames = new Set();
+  const MAX_TEXT = 280, MAX_PER_PERSON = 100;
+  let db = null, uid = null, connected = false, all = [], mine = [], picked = -1, voicesRev = 0;
+  const voiced = new Set();
+  async function connectVoices() {
+    if (connected) return; connected = true;
+    try {
+      db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+      const user = window.claude && window.claude.use ? await window.claude.use("user") : null;
+      uid = user ? await user.id() : null;
+    } catch (e) { db = null; }
+    if (!db) { renderVoices(); return; }
+    db.collection("voices").onSnapshot(snap => {
+      all = []; mine = [];
+      snap.docs.forEach(d => {
+        const posts = (d.data() && Array.isArray(d.data().posts)) ? d.data().posts : [];
+        for (const p of posts) if (p && typeof p.c === "string" && typeof p.t === "string") all.push({ c: p.c, t: p.t.slice(0, MAX_TEXT), at: +p.at || 0, me: d.id === uid });
+        if (d.id === uid) mine = posts.slice();
+      });
+      voiced.clear(); all.forEach(p => voiced.add(p.c)); voicesRev++;
+      renderVoices();
+    }, () => { db = null; renderVoices(); });
+  }
+  const ago = at => {
+    const m = Math.max(1, Math.round((Date.now() - at) / 60000));
+    return m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
+  };
+  function renderVoices() {
+    if (picked < 0 || !feats) return;
+    const name = feats[picked].name, list = all.filter(p => p.c === name).sort((a, b) => b.at - a.at).slice(0, 100);
+    const ex = exampleFor(name);
+    setEnc($("vCountry"), name.toLowerCase());
+    $("vLab").innerHTML = encHTML(`anónimos · ${list.length}` + (ex.length ? ` · ejemplos · ${ex.length}` : ""));
+    const real = list.map(p => `<li class="${p.me ? "mine" : ""}"><span class="who">${encHTML(p.me ? "anónimo (you) · " + ago(p.at) : "anónimo · " + ago(p.at))}</span><span>${encHTML(p.t)}</span></li>`);
+    const samples = ex.map(t => `<li class="example"><span class="who">${encHTML("ejemplo")}</span><span>${encHTML(t)}</span></li>`);
+    $("vList").innerHTML = real.concat(samples).join("") ||
+      `<li class="empty who">${encHTML("no anónimos have spoken here yet. be the first.")}</li>`;
+  }
+  function openCountry(h) {
+    picked = h; $("voices").hidden = h < 0; $("vMsg").textContent = "";
+    if (h >= 0) { renderVoices(); $("vText").focus({ preventScroll: true }); }
+  }
+  cv.addEventListener("click", e => {
+    if (!idx) return;
+    const c = Math.floor((e.clientX - ox) / cell), r = Math.floor((e.clientY - oy) / cell);
+    if (c >= 0 && c < cols && r >= 0 && r < rows && idx[r * cols + c] >= 0) openCountry(idx[r * cols + c]);
+  });
+  $("vClose").addEventListener("click", () => openCountry(-1));
+  const preview = () => { $("vPrev").innerHTML = encHTML($("vText").value); };
+  $("vText").addEventListener("input", preview);
+  $("vPub").addEventListener("click", async () => {
+    const t = $("vText").value.trim().replace(/\s+/g, " ").slice(0, MAX_TEXT);
+    if (!t || picked < 0) return;
+    if (!window.claude || !window.claude.use) { setEnc($("vMsg"), "publishing only works on the claude.ai page, not in a downloaded file"); return; }
+    if (!db) { setEnc($("vMsg"), "publishing needs you to be signed in to claude.ai"); return; }
+    if (!uid) { setEnc($("vMsg"), "sign in to claude.ai to publish"); return; }
+    const next = [...mine, { c: feats[picked].name, t, at: Date.now() }].slice(-MAX_PER_PERSON);
+    $("vPub").disabled = true;
+    try { await db.doc("voices/" + uid).set({ posts: next }); $("vText").value = ""; preview(); setEnc($("vMsg"), "published"); }
+    catch (e) { setEnc($("vMsg"), e && e.code === "invalid_argument" ? "this page only lets contributors publish" : "could not publish. try again"); }
+    $("vPub").disabled = false;
+  });
+  document.querySelectorAll('[data-page="map"] .enc').forEach(encodeTree);
+  leaveHooks.map = () => openCountry(-1);
+  renderers.map = () => {
+    if (!feats || !idx) return;
+    let h = -1;
+    if (P.active) {
+      const c = Math.floor((P.x - ox) / cell), r = Math.floor((P.y - oy) / cell);
+      if (c >= 0 && c < cols && r >= 0 && r < rows) h = idx[r * cols + c];
+    }
+    const key = `${h}|${Math.round(P.x)}|${Math.round(P.y)}|${picked}|${voicesRev}|${COLORS.join()}`;
+    if (key === lastKey) return;
+    if (!lastKey.endsWith(`${voicesRev}|${COLORS.join()}`)) paintBase();
+    lastKey = key; hover = h;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); g.globalAlpha = 1;
+    g.drawImage(base, 0, 0);
+    g.font = `${Math.round(cell * 1.15)}px ${STITCH_FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    if (picked >= 0) for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++)       // the open country stays lit
+      if (idx[r * cols + c] === picked) stick(g, ox + (c + .5) * cell, oy + (r + .5) * cell - 2, tilt(r, c) * .4, COLORS[2], 1);
+    if (h < 0) return;
+    // the country under the cursor: its sticks in the accent, its name written in stitches
+    g.font = `${Math.round(cell * 1.15)}px ${STITCH_FONT}`; g.textAlign = "center"; g.textBaseline = "middle";
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++)
+      if (idx[r * cols + c] === h) stick(g, ox + (c + .5) * cell, oy + (r + .5) * cell - 2, tilt(r, c) * .4, COLORS[1], 1);
+    const code = [...feats[h].name.toUpperCase()].map(ch => TABLE[ch] || (ch === " " ? " " : "")).filter(Boolean).join(" ");
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.font = `16px ${STITCH_FONT}`; g.textAlign = "left"; g.textBaseline = "middle";
+    const tw = g.measureText(code).width;
+    let lx = P.x + 18, ly = P.y + 22;
+    if (lx + tw + 16 > W) lx = Math.max(8, P.x - 18 - tw);
+    if (ly + 20 > H) ly = P.y - 24;
+    g.fillStyle = PAPER; g.globalAlpha = .92; g.fillRect(lx - 8, ly - 13, tw + 16, 26);
+    g.globalAlpha = 1; g.fillStyle = COLORS[1] === COLORS[0] ? INK : COLORS[1]; g.fillText(code, lx, ly);
+  };
+  addEventListener("resize", () => { if (active === "map") build(); });
+})();
+
+/* =====================================================================
+   9. MAIN LOOP + START
+   ===================================================================== */
+function loop(t) {
+  P.vx = P.active ? P.x - P.lx : 0; P.vy = P.active ? P.y - P.ly : 0; P.lx = P.x; P.ly = P.y;
+  if (renderers[active]) renderers[active](t);
+  requestAnimationFrame(loop);
+}
+addEventListener("resize", () => { if (active && active !== "curtain" && enterHooks[active]) enterHooks[active](); });
+// stitch sprites need the fonts: redraw the current room once they have loaded
+if (document.fonts) {
+  document.fonts.load(`16px "Courier Prime"`).catch(() => {});
+  document.fonts.load(`16px "STIGMA Stitch"`, "U∩").catch(() => {});
+  document.fonts.ready.then(() => { if (active && active !== "welcome" && enterHooks[active]) enterHooks[active](); });
+}
+// the cipher covers every room from the curtain on; the poem page keeps plain letters
+["mark", "back", "pass", "mode", "palBtn"].forEach(id => encodeTree($(id)));
+$("palBtn").addEventListener("click", nextPalette);
+["homeBtn", "homeWord"].forEach(id => encodeTree($(id)));
+$("homeBtn").addEventListener("click", () => go("welcome"));
+document.querySelectorAll('[data-page="you"] .note, [data-page="world"] .note').forEach(encodeTree);
+const startAt = location.hash.slice(1);
+show(PAGES[startAt] ? startAt : "welcome");
+requestAnimationFrame(loop);
+</script>
+
+</body></html>
